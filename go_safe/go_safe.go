@@ -1,4 +1,4 @@
-// package gosafe 提供一个安全的方式来开启协程, 当 panic 时, 不会导致进程退出, 调用方式: 直接把待执行函数传进去即可, 比如Go(f(){})
+// package go_safe 提供一个安全的方式来开启协程, 当 panic 时, 不会导致进程退出, 调用方式: 直接把待执行函数传进去即可, 比如Go(f(){})
 package go_safe
 
 import (
