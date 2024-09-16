@@ -1,20 +1,19 @@
 package mem_cache
 
 import (
-	"context"
 	"github.com/puresnr/pgo/algo"
 	"github.com/puresnr/pgo/go_safe"
 	"sync"
 	"time"
 )
 
-type memCache[K comparable, V any] struct {
-	locker       *sync.RWMutex
-	cache        map[K]V
-	funcNewCache func(context.Context, K) (V, error)
+type memCache[K comparable, V, P any] struct {
+	locker  *sync.RWMutex
+	cache   map[K]V
+	funcGen func(K, P) (V, error)
 }
 
-func (m *memCache[K, V]) Get(ctx context.Context, key K) (V, error) {
+func (m *memCache[K, V, P]) Get(key K, param P) (V, error) {
 	m.locker.RLock()
 	v, ok := m.cache[key]
 	m.locker.RUnlock()
@@ -23,18 +22,22 @@ func (m *memCache[K, V]) Get(ctx context.Context, key K) (V, error) {
 	}
 
 	var err error
-	if v, err = m.funcNewCache(ctx, key); err != nil {
+	if v, err = m.funcGen(key, param); err != nil {
 		return v, err
 	}
 
 	m.locker.Lock()
-	m.cache[key] = v
+	if v1, ok := m.cache[key]; ok {
+		v = v1
+	} else {
+		m.cache[key] = v
+	}
 	m.locker.Unlock()
 
 	return v, nil
 }
 
-func (m *memCache[K, V]) del() {
+func (m *memCache[K, V, P]) del() {
 	m.locker.Lock()
 	c, dc := 0, len(m.cache)/3
 	if c != dc {
@@ -49,8 +52,8 @@ func (m *memCache[K, V]) del() {
 	m.locker.Unlock()
 }
 
-func New[K comparable, V any](funcNewCache func(context.Context, K) (V, error), delDura ...uint) *memCache[K, V] {
-	mc := &memCache[K, V]{locker: new(sync.RWMutex), cache: make(map[K]V), funcNewCache: funcNewCache}
+func New[K comparable, V, P any](funcGen func(K, P) (V, error), delDura ...uint) *memCache[K, V, P] {
+	mc := &memCache[K, V, P]{locker: new(sync.RWMutex), cache: make(map[K]V), funcGen: funcGen}
 
 	if !algo.Empty_slice(delDura) {
 		go_safe.GoR(func() {
