@@ -2,7 +2,7 @@ package mem_cache
 
 import (
 	"github.com/puresnr/pgo/algo"
-	"github.com/puresnr/pgo/go_safe"
+	"github.com/puresnr/pgo/gosafe"
 	"sync"
 	"time"
 )
@@ -41,7 +41,7 @@ func (m *memCache[K, V, P]) del() {
 	m.locker.Lock()
 	c, dc := 0, len(m.cache)/3
 	if c != dc {
-		for k, _ := range m.cache {
+		for k := range m.cache {
 			delete(m.cache, k)
 			c++
 			if c == dc {
@@ -56,7 +56,7 @@ func New[K comparable, V, P any](funcGen func(K, P) (V, error), delDura ...uint)
 	mc := &memCache[K, V, P]{locker: new(sync.RWMutex), cache: make(map[K]V), funcGen: funcGen}
 
 	if !algo.Empty_slice(delDura) {
-		go_safe.GoR(func() {
+		gosafe.GoR(func() {
 			ticker := time.NewTicker(time.Duration(delDura[0]) * time.Second)
 			defer ticker.Stop()
 
