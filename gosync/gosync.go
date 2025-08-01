@@ -1,7 +1,7 @@
 package gosync
 
 import (
-	"github.com/puresnr/pgo/gosafe"
+	"github.com/puresnr/go/gosafe"
 	"sync"
 	"time"
 )
