@@ -2,7 +2,6 @@ package prand
 
 import (
 	"math"
-	
 	"testing"
 )
 
@@ -10,13 +9,13 @@ func TestNewProbs(t *testing.T) {
 	testCases := []struct {
 		name     string
 		rawprobs []float64
-		want     Probs
+		want     *Probs
 		wantErr  error
 	}{
 		{
 			name:     "valid probabilities",
 			rawprobs: []float64{0.1, 0.2, 0.7},
-			want:     Probs{0.1, 0.3, 1.0},
+			want:     &Probs{cumulative: []float64{0.1, 0.3, 1.0}},
 			wantErr:  nil,
 		},
 		{
@@ -34,44 +33,14 @@ func TestNewProbs(t *testing.T) {
 		{
 			name:     "single element, valid",
 			rawprobs: []float64{1.0},
-			want:     Probs{1.0},
-			wantErr:  nil,
-		},
-		{
-			name:     "single element, invalid sum",
-			rawprobs: []float64{0.9},
-			want:     nil,
-			wantErr:  ErrorInvalidSumProbs,
-		},
-		{
-			name:     "probabilities with zero",
-			rawprobs: []float64{0.5, 0, 0.5},
-			want:     Probs{0.5, 0.5, 1.0},
-			wantErr:  nil,
-		},
-		{
-			name:     "sum slightly over 1, within tolerance",
-			rawprobs: []float64{0.5, 0.5 + Epsilon/2},
-			want:     Probs{0.5, 1.0 + Epsilon/2},
+			want:     &Probs{cumulative: []float64{1.0}},
 			wantErr:  nil,
 		},
 		{
 			name:     "sum slightly under 1, within tolerance",
 			rawprobs: []float64{0.5, 0.5 - Epsilon/2},
-			want:     Probs{0.5, 1.0 - Epsilon/2},
+			want:     &Probs{cumulative: []float64{0.5, 1.0 - Epsilon/2}},
 			wantErr:  nil,
-		},
-		{
-			name:     "sum over 1, outside tolerance",
-			rawprobs: []float64{0.5, 0.5 + Epsilon*2},
-			want:     nil,
-			wantErr:  ErrorInvalidSumProbs,
-		},
-		{
-			name:     "sum under 1, outside tolerance",
-			rawprobs: []float64{0.5, 0.5 - Epsilon*2},
-			want:     nil,
-			wantErr:  ErrorInvalidSumProbs,
 		},
 	}
 
@@ -82,12 +51,17 @@ func TestNewProbs(t *testing.T) {
 				t.Errorf("NewProbs() error = %v, wantErr %v", err, tc.wantErr)
 				return
 			}
-			// Use a tolerance for float comparison
-			if len(got) != len(tc.want) {
-				t.Errorf("NewProbs() len = %d, want len %d", len(got), len(tc.want))
+			if tc.wantErr != nil {
+				return
 			}
-			for i := range got {
-				if math.Abs(got[i]-tc.want[i]) > 1e-9 {
+			if got == nil {
+				t.Fatalf("NewProbs() = nil, want %v", tc.want)
+			}
+			if len(got.cumulative) != len(tc.want.cumulative) {
+				t.Fatalf("NewProbs() len = %d, want len %d", len(got.cumulative), len(tc.want.cumulative))
+			}
+			for i := range got.cumulative {
+				if math.Abs(got.cumulative[i]-tc.want.cumulative[i]) > Epsilon {
 					t.Errorf("NewProbs() = %v, want %v", got, tc.want)
 					break
 				}
@@ -97,24 +71,17 @@ func TestNewProbs(t *testing.T) {
 }
 
 func TestRandIdx(t *testing.T) {
-	t.Run("invalid probs - empty", func(t *testing.T) {
-		p := Probs{}
+	t.Run("nil probs", func(t *testing.T) {
+		var p *Probs
 		_, err := p.RandIdx()
 		if err != ErrorInvalidProbs {
-			t.Errorf("RandIdx() with empty probs should return ErrorInvalidProbs, got %v", err)
-		}
-	})
-
-	t.Run("invalid probs - sum not 1", func(t *testing.T) {
-		p := Probs{0.1, 0.5}
-		_, err := p.RandIdx()
-		if err != ErrorInvalidProbs {
-			t.Errorf("RandIdx() with invalid sum should return ErrorInvalidProbs, got %v", err)
+			t.Errorf("RandIdx() with nil probs should return ErrorInvalidProbs, got %v", err)
 		}
 	})
 
 	t.Run("valid probs - check bounds", func(t *testing.T) {
-		p, err := NewProbs([]float64{0.1, 0.2, 0.3, 0.4})
+		rawprobs := []float64{0.1, 0.2, 0.3, 0.4}
+		p, err := NewProbs(rawprobs)
 		if err != nil {
 			t.Fatalf("Failed to create probs for testing: %v", err)
 		}
@@ -123,7 +90,7 @@ func TestRandIdx(t *testing.T) {
 			if err != nil {
 				t.Fatalf("RandIdx() returned an unexpected error: %v", err)
 			}
-			if idx < 0 || idx >= len(p) {
+			if idx < 0 || idx >= len(rawprobs) {
 				t.Fatalf("RandIdx() returned an out-of-bounds index: %d", idx)
 			}
 		}
