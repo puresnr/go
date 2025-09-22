@@ -39,15 +39,9 @@ func (p *Probs) RandIdx() (int, error) {
 	value := rand.Float64()
 
 	// sort.Search finds the smallest index i where p.cumulative[i] >= value.
-	// This is the correct bucket for the random value.
+	// Since the last element of p.cumulative is guaranteed to be 1.0 and value is < 1.0,
+	// this search is guaranteed to find a valid index from 0 to lenp-1.
 	idx := sort.Search(lenp, func(i int) bool { return p.cumulative[i] >= value })
-
-	// If idx is lenp, it means value > the last element in Probs.
-	// This can happen due to floating point inaccuracies if the sum of probs is slightly less than 1.0.
-	// In this case, the value belongs to the last bucket.
-	if idx == lenp {
-		return lenp - 1, nil
-	}
 
 	return idx, nil
 }
@@ -77,5 +71,12 @@ func NewProbs(rawprobs []float64) (*Probs, error) {
 	if math.Abs(probs.cumulative[lenProbs-1]-1.0) > Epsilon {
 		return nil, ErrorInvalidSumProbs
 	}
+
+	// Force the last element to be exactly 1.0 to guarantee the invariant
+	// and simplify the logic in RandIdx.
+	if lenProbs > 0 {
+		probs.cumulative[lenProbs-1] = 1.0
+	}
+
 	return probs, nil
 }
