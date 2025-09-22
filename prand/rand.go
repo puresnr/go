@@ -25,6 +25,10 @@ type Probs struct {
 // RandIdx returns a random index based on the cumulative probability distribution.
 // It uses binary search and has a time complexity of O(log N).
 func (p *Probs) RandIdx() (int, error) {
+	if p == nil {
+		return 0, ErrorInvalidProbs
+	}
+
 	lenp := len(p.cumulative)
 
 	if lenp == 0 {
