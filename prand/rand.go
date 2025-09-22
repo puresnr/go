@@ -32,9 +32,10 @@ func (p *Probs) RandIdx() (int, error) {
 
 	value := rand.Float64()
 
-	// sort.Search finds the smallest index i where p.cumulative[i] >= value.
-	// Since the last element of p.cumulative is guaranteed to be 1.0 and value is < 1.0,
-	// this search is guaranteed to find a valid index from 0 to lenp-1.
+	// sort.Search finds the smallest index i where p.cumulative[i] > value.
+	// This search identifies the correct "bucket" for the random value.
+	// Using ">" instead of ">=" is crucial for correctly handling values
+	// that fall on the boundaries between buckets.
 	return sort.Search(len(p.cumulative), func(i int) bool { return p.cumulative[i] > value }), nil
 }
 
