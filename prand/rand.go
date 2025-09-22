@@ -18,16 +18,19 @@ var (
 	ErrorMismatchedLen   = errors.New("values and probs must have the same length")
 )
 
-// WeightedRand is a cumulative probability distribution.
-// It is an opaque type and can only be created by NewProbs.
+// WeightedRand provides weighted random sampling for a set of items of any type.
+// It is initialized with values and their corresponding probabilities, and can then
+// efficiently return a random value based on the defined weights.
+// Create an instance using NewWeightedRand.
 type WeightedRand[T any] struct {
 	values     []T
 	cumulative []float64
 }
 
-// NewProbs creates a cumulative probability distribution from a slice of raw probabilities.
-// The sum of rawprobs must be equal to 1.0 within a tolerance of Epsilon.
-// All probabilities in rawprobs must be non-negative.
+// NewWeightedRand creates a new WeightedRand instance from a slice of values and a parallel slice of probabilities.
+// The sum of probabilities in rawprobs must be equal to 1.0 (within a small tolerance).
+// All individual probabilities must be non-negative.
+// The values and rawprobs slices must have the same length.
 func NewWeightedRand[T any](values []T, rawprobs []float64) (*WeightedRand[T], error) {
 	if len(values) != len(rawprobs) {
 		return nil, ErrorMismatchedLen
