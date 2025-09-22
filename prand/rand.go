@@ -26,13 +26,7 @@ type Probs struct {
 // RandIdx returns a random index based on the cumulative probability distribution.
 // It uses binary search and has a time complexity of O(log N).
 func (p *Probs) RandIdx() (int, error) {
-	if p == nil {
-		return 0, ErrorInvalidProbs
-	}
-
-	lenp := len(p.cumulative)
-
-	if lenp == 0 {
+	if p == nil || len(p.cumulative) == 0 {
 		return 0, ErrorInvalidProbs
 	}
 
@@ -41,9 +35,7 @@ func (p *Probs) RandIdx() (int, error) {
 	// sort.Search finds the smallest index i where p.cumulative[i] >= value.
 	// Since the last element of p.cumulative is guaranteed to be 1.0 and value is < 1.0,
 	// this search is guaranteed to find a valid index from 0 to lenp-1.
-	idx := sort.Search(lenp, func(i int) bool { return p.cumulative[i] >= value })
-
-	return idx, nil
+	return sort.Search(len(p.cumulative), func(i int) bool { return p.cumulative[i] > value }), nil
 }
 
 // NewProbs creates a cumulative probability distribution from a slice of raw probabilities.
@@ -56,15 +48,15 @@ func NewProbs(rawprobs []float64) (*Probs, error) {
 		return nil, ErrorEmptyProbs
 	}
 
-	for _, p := range rawprobs {
-		if p < 0 {
-			return nil, ErrorNegativeProb
-		}
+	if rawprobs[0] < 0 {
+		return nil, ErrorNegativeProb
 	}
-
 	probs := &Probs{cumulative: make([]float64, lenProbs)}
 	probs.cumulative[0] = rawprobs[0]
 	for i := 1; i < lenProbs; i++ {
+		if rawprobs[i] < 0 {
+			return nil, ErrorNegativeProb
+		}
 		probs.cumulative[i] = probs.cumulative[i-1] + rawprobs[i]
 	}
 
@@ -74,9 +66,7 @@ func NewProbs(rawprobs []float64) (*Probs, error) {
 
 	// Force the last element to be exactly 1.0 to guarantee the invariant
 	// and simplify the logic in RandIdx.
-	if lenProbs > 0 {
-		probs.cumulative[lenProbs-1] = 1.0
-	}
+	probs.cumulative[lenProbs-1] = 1.0
 
 	return probs, nil
 }
