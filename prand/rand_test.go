@@ -49,6 +49,30 @@ func TestNewProbs(t *testing.T) {
 			want:     Probs{0.5, 0.5, 1.0},
 			wantErr:  nil,
 		},
+		{
+			name:     "sum slightly over 1, within tolerance",
+			rawprobs: []float64{0.5, 0.5 + Epsilon/2},
+			want:     Probs{0.5, 1.0 + Epsilon/2},
+			wantErr:  nil,
+		},
+		{
+			name:     "sum slightly under 1, within tolerance",
+			rawprobs: []float64{0.5, 0.5 - Epsilon/2},
+			want:     Probs{0.5, 1.0 - Epsilon/2},
+			wantErr:  nil,
+		},
+		{
+			name:     "sum over 1, outside tolerance",
+			rawprobs: []float64{0.5, 0.5 + Epsilon*2},
+			want:     nil,
+			wantErr:  ErrorInvalidSumProbs,
+		},
+		{
+			name:     "sum under 1, outside tolerance",
+			rawprobs: []float64{0.5, 0.5 - Epsilon*2},
+			want:     nil,
+			wantErr:  ErrorInvalidSumProbs,
+		},
 	}
 
 	for _, tc := range testCases {

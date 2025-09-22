@@ -2,8 +2,12 @@ package prand
 
 import (
 	"errors"
+	"math"
 	"math/rand/v2"
 )
+
+// Epsilon defines the tolerance for floating-point comparisons.
+const Epsilon = 1e-9
 
 var (
 	ErrorEmptyProbs      = errors.New("empty probs")
@@ -30,6 +34,8 @@ func (p Probs) RandIdx() (int, error) {
 	return 0, ErrorInvalidProbs
 }
 
+// NewProbs creates a cumulative probability distribution from a slice of raw probabilities.
+// The sum of rawprobs must be equal to 1.0 within a tolerance of Epsilon.
 func NewProbs(rawprobs []float64) (Probs, error) {
 	lenProbs := len(rawprobs)
 
@@ -43,9 +49,8 @@ func NewProbs(rawprobs []float64) (Probs, error) {
 		probs[i] = probs[i-1] + rawprobs[i]
 	}
 
-	if probs[lenProbs-1] != 1 {
+	if math.Abs(probs[lenProbs-1]-1.0) > Epsilon {
 		return nil, ErrorInvalidSumProbs
 	}
 	return probs, nil
 }
-
