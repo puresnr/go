@@ -37,12 +37,10 @@ func NewProbs(rawprobs []float64) (Probs, error) {
 		return nil, ErrorEmptyProbs
 	}
 
-	probs := make(Probs, 0, lenProbs)
-	probs = append(probs, rawprobs[0])
-	if lenProbs > 1 {
-		for i := 1; i != lenProbs; i++ {
-			probs = append(probs, probs[i-1] + rawprobs[i])
-		}
+	probs := make(Probs, lenProbs)
+	probs[0] = rawprobs[0]
+	for i := 1; i < lenProbs; i++ {
+		probs[i] = probs[i-1] + rawprobs[i]
 	}
 
 	if probs[lenProbs-1] != 1 {
