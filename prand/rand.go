@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math"
 	"math/rand/v2"
+	"sort"
 )
 
 // Epsilon defines the tolerance for floating-point comparisons.
@@ -17,21 +18,29 @@ var (
 
 type Probs []float64
 
+// RandIdx returns a random index based on the cumulative probability distribution.
+// It uses binary search and has a time complexity of O(log N).
 func (p Probs) RandIdx() (int, error) {
-	if lenp := len(p); lenp == 0 || p[lenp-1] != 1 {
+	lenp := len(p)
+	// Check if the distribution is valid. The sum (last element) must be 1.0 within tolerance.
+	if lenp == 0 || math.Abs(p[lenp-1]-1.0) > Epsilon {
 		return 0, ErrorInvalidProbs
 	}
 
 	value := rand.Float64()
 
-	for idx, v := range p {
-		if value < v {
-			return idx, nil
-		}
+	// sort.Search finds the smallest index i for which p[i] > value.
+	// This is the definition of which bucket the random value falls into.
+	idx := sort.Search(lenp, func(i int) bool { return p[i] > value })
+
+	// If idx is lenp, it means the value is >= the last element in Probs
+	// (which can happen if the sum is slightly less than 1.0).
+	// In that case, the value belongs to the last bucket.
+	if idx == lenp {
+		return lenp - 1, nil
 	}
 
-	// should not be reached
-	return 0, ErrorInvalidProbs
+	return idx, nil
 }
 
 // NewProbs creates a cumulative probability distribution from a slice of raw probabilities.
