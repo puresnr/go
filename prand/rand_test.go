@@ -42,6 +42,18 @@ func TestNewProbs(t *testing.T) {
 			want:     &Probs{cumulative: []float64{0.5, 1.0 - Epsilon/2}},
 			wantErr:  nil,
 		},
+		{
+			name:     "negative probability",
+			rawprobs: []float64{0.5, -0.1, 0.6},
+			want:     nil,
+			wantErr:  ErrorNegativeProb,
+		},
+		{
+			name:     "negative probability at start",
+			rawprobs: []float64{-0.1, 0.5, 0.6},
+			want:     nil,
+			wantErr:  ErrorNegativeProb,
+		},
 	}
 
 	for _, tc := range testCases {

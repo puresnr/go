@@ -14,6 +14,7 @@ var (
 	ErrorEmptyProbs      = errors.New("empty probs")
 	ErrorInvalidSumProbs = errors.New("sum probs should be 1")
 	ErrorInvalidProbs    = errors.New("invalid probs")
+	ErrorNegativeProb    = errors.New("probability cannot be negative")
 )
 
 // Probs is a cumulative probability distribution.
@@ -37,13 +38,13 @@ func (p *Probs) RandIdx() (int, error) {
 
 	value := rand.Float64()
 
-	// sort.Search finds the smallest index i for which p.cumulative[i] > value.
-	// This is the definition of which bucket the random value falls into.
-	idx := sort.Search(lenp, func(i int) bool { return p.cumulative[i] > value })
+	// sort.Search finds the smallest index i where p.cumulative[i] >= value.
+	// This is the correct bucket for the random value.
+	idx := sort.Search(lenp, func(i int) bool { return p.cumulative[i] >= value })
 
-	// If idx is lenp, it means the value is >= the last element in Probs
-	// (which can happen if the sum is slightly less than 1.0).
-	// In that case, the value belongs to the last bucket.
+	// If idx is lenp, it means value > the last element in Probs.
+	// This can happen due to floating point inaccuracies if the sum of probs is slightly less than 1.0.
+	// In this case, the value belongs to the last bucket.
 	if idx == lenp {
 		return lenp - 1, nil
 	}
@@ -53,11 +54,18 @@ func (p *Probs) RandIdx() (int, error) {
 
 // NewProbs creates a cumulative probability distribution from a slice of raw probabilities.
 // The sum of rawprobs must be equal to 1.0 within a tolerance of Epsilon.
+// All probabilities in rawprobs must be non-negative.
 func NewProbs(rawprobs []float64) (*Probs, error) {
 	lenProbs := len(rawprobs)
 
 	if lenProbs == 0 {
 		return nil, ErrorEmptyProbs
+	}
+
+	for _, p := range rawprobs {
+		if p < 0 {
+			return nil, ErrorNegativeProb
+		}
 	}
 
 	probs := &Probs{cumulative: make([]float64, lenProbs)}
