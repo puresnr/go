@@ -21,7 +21,11 @@ var (
 // WeightedRand provides weighted random sampling for a set of items of any type.
 // It is initialized with values and their corresponding probabilities, and can then
 // efficiently return a random value based on the defined weights.
-// Create an instance using NewWeightedRand.
+//
+// An instance must be created using NewWeightedRand. If NewWeightedRand succeeds,
+// the returned *WeightedRand is guaranteed to be in a valid state. For such an
+// instance, methods that operate on its state (e.g., Rand, RandIdx) will not
+// return an error.
 type WeightedRand[T any] struct {
 	values     []T
 	cumulative []float64
@@ -65,6 +69,7 @@ func NewWeightedRand[T any](values []T, rawprobs []float64) (*WeightedRand[T], e
 	return wr, nil
 }
 
+// Rand returns a random value based on the weighted probabilities.
 func (p *WeightedRand[T]) Rand() (v T, err error) {
 	idx, err := p.RandIdx()
 	if err != nil {
