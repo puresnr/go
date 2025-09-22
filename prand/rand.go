@@ -25,11 +25,12 @@ type Probs struct {
 // RandIdx returns a random index based on the cumulative probability distribution.
 // It uses binary search and has a time complexity of O(log N).
 func (p *Probs) RandIdx() (int, error) {
-	if p == nil {
+	lenp := len(p.cumulative)
+
+	if lenp == 0 {
 		return 0, ErrorInvalidProbs
 	}
 
-	lenp := len(p.cumulative)
 	value := rand.Float64()
 
 	// sort.Search finds the smallest index i for which p.cumulative[i] > value.
@@ -55,14 +56,14 @@ func NewProbs(rawprobs []float64) (*Probs, error) {
 		return nil, ErrorEmptyProbs
 	}
 
-	cumulative := make([]float64, lenProbs)
-	cumulative[0] = rawprobs[0]
+	probs := &Probs{cumulative: make([]float64, lenProbs)}
+	probs.cumulative[0] = rawprobs[0]
 	for i := 1; i < lenProbs; i++ {
-		cumulative[i] = cumulative[i-1] + rawprobs[i]
+		probs.cumulative[i] = probs.cumulative[i-1] + rawprobs[i]
 	}
 
-	if math.Abs(cumulative[lenProbs-1]-1.0) > Epsilon {
+	if math.Abs(probs.cumulative[lenProbs-1]-1.0) > Epsilon {
 		return nil, ErrorInvalidSumProbs
 	}
-	return &Probs{cumulative: cumulative}, nil
+	return probs, nil
 }
