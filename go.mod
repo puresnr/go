@@ -3,14 +3,16 @@ module github.com/puresnr/go
 go 1.23.1
 
 require (
-	github.com/davecgh/go-spew v1.1.1
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/puresnr/go-cell v0.0.0-20241202065435-f992c79fbf1d
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/atomic v1.11.0
-	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
+	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 )
 
 require (
-	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
