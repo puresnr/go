@@ -1,4 +1,4 @@
-package mmap
+package pmap
 
 import (
 	"github.com/puresnr/go/algo"
@@ -7,9 +7,8 @@ import (
 
 // DeepcopyBasic creates a deep copy of a map with comparable keys and basic value types.
 // Keys must be comparable. Values must be basic types (e.g., int, string, bool).
-func DeepcopyBasic[K constraint.NonPointerBasic, V constraint.NonPointerBasic](m map[K]V) map[K]V {
-	// Consistent with slice deepcopy, return nil for nil or empty maps.
-	if m == nil || algo.Empty_map(m) { // Assuming algo.Empty_map handles nil and empty maps
+func DeepcopyBasic[K constraint.Basic, V constraint.Basic](m map[K]V) map[K]V {
+	if algo.Empty_map(m) { // Assuming algo.Empty_map handles nil and empty maps
 		return nil
 	}
 
@@ -22,9 +21,11 @@ func DeepcopyBasic[K constraint.NonPointerBasic, V constraint.NonPointerBasic](m
 
 // Deepcopy creates a deep copy of a map with comparable keys and values that implement the Deepcopyable interface.
 // Keys must be comparable. Values must implement the constraint.Deepcopyable interface.
-func Deepcopy[K interface{ comparable; constraint.NonPointerBasic }, V constraint.Deepcopyable[V]](m map[K]V) map[K]V {
-	// Consistent with slice deepcopy, return nil for nil or empty maps.
-	if m == nil || algo.Empty_map(m) { // Assuming algo.Empty_map handles nil and empty maps
+func Deepcopy[K interface {
+	comparable
+	constraint.Basic
+}, V constraint.Deepcopyable[V]](m map[K]V) map[K]V {
+	if algo.Empty_map(m) { // Assuming algo.Empty_map handles nil and empty maps
 		return nil
 	}
 

@@ -1,4 +1,4 @@
-package slice
+package pslice
 
 import (
 	"github.com/puresnr/go/algo"
@@ -6,7 +6,7 @@ import (
 )
 
 // DeepcopyBasic creates a deep copy of a slice of basic data types.
-func DeepcopyBasic[T constraint.NonPointerBasic](s []T) []T {
+func DeepcopyBasic[T constraint.Basic](s []T) []T {
 	if algo.Empty_slice(s) {
 		return nil
 	}

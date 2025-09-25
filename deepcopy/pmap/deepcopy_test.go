@@ -1,4 +1,4 @@
-package mmap
+package pmap
 
 import (
 	"reflect"
@@ -9,7 +9,7 @@ import (
 
 // MyStruct for testing Deepcopyable values in maps
 type MyStruct struct {
-	Value int	
+	Value int
 	Ptr   *int
 }
 
