@@ -7,7 +7,10 @@ import (
 
 // DeepcopyBasic creates a deep copy of a map with comparable keys and basic value types.
 // Keys must be comparable. Values must be basic types (e.g., int, string, bool).
-func DeepcopyBasic[K constraint.Basic, V constraint.Basic](m map[K]V) map[K]V {
+func DeepcopyBasic[K interface {
+	comparable
+	constraint.Basic
+}, V constraint.Basic](m map[K]V) map[K]V {
 	if algo.Empty_map(m) { // Assuming algo.Empty_map handles nil and empty maps
 		return nil
 	}
