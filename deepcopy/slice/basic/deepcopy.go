@@ -23,3 +23,21 @@ func Deepcopy[T Basic](s []T) []T {
 	copy(newSlice, s)
 	return newSlice
 }
+
+// Deepcopyable is an interface for types that can create a deep copy of themselves.
+type Deepcopyable[T any] interface {
+    Deepcopy() T
+}
+
+// DeepcopyInterface creates a deep copy of a slice whose elements implement the Deepcopyable interface.
+func DeepcopyInterface[T Deepcopyable[T]](s []T) []T {
+    if s == nil || len(s) == 0 { // Consistent with Deepcopy function's nil return for empty slices
+        return nil
+    }
+
+    newSlice := make([]T, len(s))
+    for i, v := range s {
+        newSlice[i] = v.Deepcopy()
+    }
+    return newSlice
+}
