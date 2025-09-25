@@ -3,6 +3,8 @@ package slice
 import (
 	"reflect"
 	"testing"
+
+	"github.com/puresnr/go/deepcopy/constraint"
 )
 
 type MyStruct struct {
@@ -19,18 +21,21 @@ func (m MyStruct) Deepcopy() MyStruct {
 	}
 }
 
-func TestDeepcopy(t *testing.T) {
+// Ensure MyStruct implements Deepcopyable
+var _ constraint.Deepcopyable[MyStruct] = MyStruct{}
+
+func TestDeepcopyBasic(t *testing.T) {
 	t.Run("nil slice", func(t *testing.T) {
 		var s1 []int
-		s2 := Deepcopy(s1)
+		s2 := DeepcopyBasic(s1)
 		if s2 != nil {
-			t.Errorf("Deepcopy(nil) should be nil, got %v", s2)
+			t.Errorf("DeepcopyBasic(nil) should be nil, got %v", s2)
 		}
 	})
 
 	t.Run("empty slice", func(t *testing.T) {
 		s1 := []int{}
-		s2 := Deepcopy(s1)
+		s2 := DeepcopyBasic(s1)
 		if len(s2) != 0 {
 			t.Errorf("Clone of empty slice should be an empty slice, got %v", s2)
 		}
@@ -38,7 +43,7 @@ func TestDeepcopy(t *testing.T) {
 
 	t.Run("int slice", func(t *testing.T) {
 		s1 := []int{1, 2, 3}
-		s2 := Deepcopy(s1)
+		s2 := DeepcopyBasic(s1)
 
 		if !reflect.DeepEqual(s1, s2) {
 			t.Errorf("Cloned slice %v is not equal to original %v", s2, s1)
@@ -53,7 +58,7 @@ func TestDeepcopy(t *testing.T) {
 
 	t.Run("string slice", func(t *testing.T) {
 		s1 := []string{"a", "b", "c"}
-		s2 := Deepcopy(s1)
+		s2 := DeepcopyBasic(s1)
 
 		if !reflect.DeepEqual(s1, s2) {
 			t.Errorf("Cloned slice %v is not equal to original %v", s2, s1)
@@ -65,7 +70,9 @@ func TestDeepcopy(t *testing.T) {
 			t.Errorf("Clone is not a deep copy; it was modified when the original changed.")
 		}
 	})
+}
 
+func TestDeepcopy(t *testing.T) {
 	t.Run("Deepcopyable struct slice", func(t *testing.T) {
 		ptr1 := new(int)
 		*ptr1 = 10
@@ -75,7 +82,7 @@ func TestDeepcopy(t *testing.T) {
 		}
 		*s1[1].Ptr = 20
 
-		s2 := DeepcopyInterface(s1)
+		s2 := Deepcopy(s1)
 
 		if !reflect.DeepEqual(s1, s2) {
 			t.Errorf("Deepcopied slice %v is not equal to original %v", s2, s1)
@@ -86,7 +93,7 @@ func TestDeepcopy(t *testing.T) {
 		*s1[0].Ptr = 999
 
 		if s2[0].Value == 99 || *s2[0].Ptr == 999 {
-			t.Errorf("DeepcopyInterface is not a deep copy; it was modified when the original changed.")
+			t.Errorf("Deepcopy is not a deep copy; it was modified when the original changed.")
 		}
 	})
 }
