@@ -1,4 +1,4 @@
-package deepcopy
+package basic
 
 import "github.com/puresnr/go/algo"
 
@@ -12,9 +12,8 @@ type Basic interface {
 	~string | ~bool | ~complex64 | ~complex128
 }
 
-// Clone creates a deep copy of a slice of basic data types.
+// Deepcopy creates a deep copy of a slice of basic data types.
 func Deepcopy[T Basic](s []T) []T {
-	// If the original slice is nil, return nil to maintain that state.
 	if algo.Empty_slice(s) {
 		return nil
 	}
