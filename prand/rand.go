@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/rand/v2"
 	"sort"
+
+	"github.com/puresnr/go/deepcopy/pslice"
 )
 
 // Epsilon defines the tolerance for floating-point comparisons.
@@ -68,6 +70,10 @@ func NewWeightedRand[T any](values []T, rawprobs []float64) (*WeightedRand[T], e
 
 	return wr, nil
 }
+
+func (p *WeightedRand[T]) Values() []T { return p.values }
+
+func (p *WeightedRand[T]) Cumulative() []float64 { return pslice.DeepcopyBasic(p.cumulative) }
 
 // Rand returns a random value based on the weighted probabilities.
 func (p *WeightedRand[T]) Rand() (v T, err error) {
